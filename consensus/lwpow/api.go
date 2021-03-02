@@ -1,7 +1,7 @@
 type API struct {
 	chain consensus.ChainReader
 
-	myAlgo *MyAlgo
+	lwpow *LWPoW
 }
 
 func (api *API) EchoNumber(ctx context.Context, number uint64) (uint64, error) {

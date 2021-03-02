@@ -274,10 +274,9 @@ func makeExtraData(extra []byte) []byte {
 func CreateConsensusEngine(stack *node.Node, chainConfig *params.ChainConfig, config *ethash.Config, notify []string, noverify bool, db ethdb.Database) consensus.Engine {
 	// My Consensus algorithm
 	if chainConfig.LWPoW != nil{
-		fmt.Println("myalgo is configured as consensus engine")
+		fmt.Println("Lightweight algorithm is configured as consensus engine")
 		return LWPoW.New(chainConfig.LWPoW, db)
 	}
-	
 	// If proof-of-authority is requested, set it up
 	if chainConfig.Clique != nil {
 		return clique.New(chainConfig.Clique, db)

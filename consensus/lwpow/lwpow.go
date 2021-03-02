@@ -9,13 +9,31 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 )
 
-func (LWPoW *LWPoW) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
+//LWPoW is a lightweight proof-of-work protocol that uses cryptography algorithms to achieve its results
+type LWPoW struct {
+	config LwpowConfig    // Consensus engine configuration parameters
+	db     ethdb.Database // Database to store and retrieve snapshot checkpoints
+}
+
+// Author implements consensus.Engine, returning the header's coinbase as the
+// proof-of-work verified author of the block.
+func (lwpow *LWPoW) Author(header *types.Header) (common.Address, error) {
+	return header.Coinbase, nil
+}
+
+
+// VerifyHeader checks whether a header conforms to the consensus rules of the
+// consensus engine
+func (lwpow *LWPoW) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
 
 	log.Info("will verfiyHeader")
 	return nil
 }
 
-func (LWPoW *LWPoW) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
+// VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
+// concurrently. The method returns a quit channel to abort the operations and
+// a results channel to retrieve the async verifications.
+func (lwpow *LWPoW) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 
 	log.Info("will verfiyHeaders")
 	abort := make(chan struct{})
@@ -24,14 +42,13 @@ func (LWPoW *LWPoW) VerifyHeaders(chain consensus.ChainReader, headers []*types.
 	go func() {
 
 		for _, header := range headers {
-
-			err := LWPoW.VerifyHeader(chain, header, false)
+			err := lwpow.VerifyHeader(chain, header, false)
 
 			select {
-			case <-abort:
-				return
+				case <-abort:
+					return
 
-			case results <- err:
+				case results <- err:
 			}
 		}
 	}()
@@ -39,19 +56,19 @@ func (LWPoW *LWPoW) VerifyHeaders(chain consensus.ChainReader, headers []*types.
 	return abort, results
 }
 
-func (LWPoW *LWPoW) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
+func (lwpow *LWPoW) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
 
 	log.Info("will verfiy uncles")
 	return nil
 }
 
-func (LWPoW *LWPoW) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
+func (lwpow *LWPoW) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
 
 	log.Info("will verfiy VerifySeal")
 	return nil
 }
 
-func (LWPoW *LWPoW) Prepare(chain consensus.ChainReader, header *types.Header) error {
+func (lwpow *LWPoW) Prepare(chain consensus.ChainReader, header *types.Header) error {
 
 	log.Info("will prepare the block")
 
@@ -66,12 +83,12 @@ func (LWPoW *LWPoW) Prepare(chain consensus.ChainReader, header *types.Header) e
 	return nil
 }
 
-func (LWPoW *LWPoW) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
+func (lwpow *LWPoW) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
 
 	return calcDifficultyHomestead(time, parent)
 }
 
-func (LWPoW *LWPoW) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, 
+func (lwpow *LWPoW) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, 
 	uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 
 	log.Info("will Finalize the block")
@@ -83,7 +100,7 @@ func (LWPoW *LWPoW) Finalize(chain consensus.ChainReader, header *types.Header, 
 	return b, nil
 }
 
-func (LWPoW *LWPoW) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
+func (lwpow *LWPoW) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 
 	log.Info("will Seal the block")
 
